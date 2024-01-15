@@ -1,0 +1,49 @@
+import pandas as pd
+
+# Read the data from the provided CSV
+data = pd.read_csv('data.csv')
+
+# Plot the price trends
+plt.figure(figsize=(10, 6))
+for col in data.columns:
+    plt.plot(data.index, data[col], label=f'Asset {col}')
+
+plt.title('Price Trends for Assets')
+plt.xlabel('Days')
+plt.ylabel('Price')
+plt.legend()
+plt.show()
+
+# Calculate Simple Moving Averages (SMA)
+data['SMA30'] = data['1'].rolling(window=30).mean()
+data['SMA100'] = data['1'].rolling(window=100).mean()
+
+# Print the first 10 rows of the DataFrame with the new SMA columns
+print(data.head(50))
+
+# Generate Buy and Sell signals
+data['Signal'] = 0  # 0 represents no signal
+
+# Buy signal: SMA30 crosses above SMA100
+data.loc[data['SMA30'] > data['SMA100'], 'Signal'] = 1
+
+# Sell signal: SMA30 crosses below SMA100
+data.loc[data['SMA30'] < data['SMA100'], 'Signal'] = -1
+
+# Plot the data along with Buy and Sell signals
+plt.figure(figsize=(12, 6))
+plt.plot(data['1'], label='Close Price', linewidth=2)
+plt.plot(data['SMA30'], label='SMA30', linestyle='--', alpha=0.7)
+plt.plot(data['SMA100'], label='SMA100', linestyle='--', alpha=0.7)
+
+# Plot Buy signals
+plt.scatter(data[data['Signal'] == 1].index, data['SMA30'][data['Signal'] == 1], marker='^', color='g', label='Buy Signal')
+
+# Plot Sell signals
+plt.scatter(data[data['Signal'] == -1].index, data['SMA30'][data['Signal'] == -1], marker='v', color='r', label='Sell Signal')
+
+plt.title('Buy and Sell signals based on SMA')
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.legend()
+plt.show()
